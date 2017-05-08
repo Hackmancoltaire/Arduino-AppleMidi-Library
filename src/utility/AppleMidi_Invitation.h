@@ -15,16 +15,20 @@
 
 #include "utility/AppleMidi_Util.h"
 
+#ifdef __cpp
+extern "C" {
+#endif
+
 BEGIN_APPLEMIDI_NAMESPACE
 	
-class AppleMIDI_Invitation {
-public:
+typedef struct __attribute__((packed)) AppleMIDI_Invitation
+{
 	uint8_t		signature[2];
 	uint8_t		command[2];
 	uint32_t	version;
 	uint32_t	initiatorToken;
 	uint32_t	ssrc;
-	char		sessionName[16];
+	char		sessionName[SESSION_NAME_MAX_LEN + 1];
 
 	AppleMIDI_Invitation()
 	{
@@ -37,6 +41,16 @@ public:
 		memcpy(command,   amInvitation, sizeof(amInvitation));
 		version = 2;
 	}
-};
+
+	inline uint8_t getLength()
+	{
+		return sizeof(AppleMIDI_Invitation) - (SESSION_NAME_MAX_LEN) + strlen(sessionName);
+	}
+
+} AppleMIDI_Invitation_t;
 
 END_APPLEMIDI_NAMESPACE
+
+#ifdef __cpp
+}
+#endif

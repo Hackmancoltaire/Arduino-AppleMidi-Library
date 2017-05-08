@@ -15,16 +15,20 @@
 
 #include "utility/AppleMidi_Util.h"
 
+#ifdef __cpp
+extern "C" {
+#endif
+
 BEGIN_APPLEMIDI_NAMESPACE
 	
-class AppleMIDI_InvitationRejected {
-public:
+typedef struct __attribute__((packed)) AppleMIDI_InvitationRejected
+{
 	uint8_t		signature[2];
 	uint8_t		command[2];
 	uint32_t	version;
 	uint32_t	initiatorToken;
 	uint32_t	ssrc;
-	char		sessionName[16];
+	char		sessionName[SESSION_NAME_MAX_LEN + 1];
 
 	AppleMIDI_InvitationRejected()
 	{
@@ -39,7 +43,7 @@ public:
 
 		this->initiatorToken = initiatorToken;
 		this->ssrc           = ssrc;
-		strcpy(this->sessionName, static_cast<const char*>(sessionName));
+		strncpy(this->sessionName, static_cast<const char*>(sessionName), SESSION_NAME_MAX_LEN);
 	}
 
 private:
@@ -51,6 +55,10 @@ private:
 		version = 2;
 	}
 
-};
+} AppleMIDI_InvitationRejected_t;
 
 END_APPLEMIDI_NAMESPACE
+
+#ifdef __cpp
+}
+#endif

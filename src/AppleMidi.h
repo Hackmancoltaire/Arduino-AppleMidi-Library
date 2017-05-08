@@ -26,10 +26,18 @@
 #include "utility/RtpMidi_Clock.h"
 
 #include "utility/dissector.h"
+#include "utility/PacketWriter.hpp"
 
-// Rev3 Ethernet shield can only handle 4 sockets.
-// We use 2 sockets per session, for port 5004 and 5005
-#define MAX_SESSIONS 2
+#if defined(ARDUINO)
+#if defined(ESP8266)
+#define MAX_SESSIONS 4 // arbitrary number (tested up to 4 clients)
+#else
+#define MAX_SESSIONS 1 // should be 1. Response times drop significantly when more sessions are active
+#endif
+#else
+#define MAX_SESSIONS 4 // arbitrary number
+#endif
+
 
 BEGIN_APPLEMIDI_NAMESPACE
 
@@ -107,7 +115,7 @@ protected:
 
 	Session_t	Sessions[MAX_SESSIONS];
 
-	char _sessionName[50];
+	char _sessionName[SESSION_NAME_MAX_LEN + 1];
 
 	inline uint32_t	createInitiatorToken();
 
@@ -118,9 +126,9 @@ public:
 
 	int Port;
 
-	inline void begin(const char*, uint16_t port = CONTROL_PORT);
+	inline bool begin(const char*, uint16_t port = CONTROL_PORT);
 
-	inline uint32_t	getSynchronizationSource() { return _ssrc; }
+	inline uint32_t	getSynchronizationSource();
 	inline char*	getSessionName() { return _sessionName; }
 
 	inline void run();
@@ -158,11 +166,11 @@ public:
 	inline void OnTuneRequest(void* sender);
 
 private:
-	inline void write(UdpClass&, AppleMIDI_InvitationRejected&, IPAddress ip, uint16_t port);
-	inline void write(UdpClass&, AppleMIDI_InvitationAccepted&, IPAddress ip, uint16_t port);
-	inline void write(UdpClass&, AppleMIDI_Syncronization&, IPAddress ip, uint16_t port);
-	inline void write(UdpClass&, AppleMIDI_Invitation&, IPAddress ip, uint16_t port);
-	inline void write(UdpClass&, AppleMIDI_BitrateReceiveLimit&, IPAddress ip, uint16_t port);
+	inline void write(UdpClass&, AppleMIDI_InvitationRejected, IPAddress ip, uint16_t port);
+	inline void write(UdpClass&, AppleMIDI_InvitationAccepted, IPAddress ip, uint16_t port);
+	inline void write(UdpClass&, AppleMIDI_Syncronization, IPAddress ip, uint16_t port);
+	inline void write(UdpClass&, AppleMIDI_Invitation, IPAddress ip, uint16_t port);
+	inline void write(UdpClass&, AppleMIDI_BitrateReceiveLimit, IPAddress ip, uint16_t port);
 
 #if APPLEMIDI_BUILD_OUTPUT
 
@@ -215,6 +223,7 @@ private:
 
 #endif // APPLEMIDI_BUILD_OUTPUT
 
+public:
 	inline int	GetFreeSessionSlot();
 	inline int	GetSessionSlotUsingSSrc(const uint32_t ssrc);
 	inline int	GetSessionSlotUsingInitiatorToken(const uint32_t initiatorToken);
