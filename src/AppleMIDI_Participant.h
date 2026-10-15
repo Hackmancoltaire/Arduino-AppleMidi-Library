@@ -1,0 +1,50 @@
+#pragma once
+
+#include "AppleMIDI_Defs.h"
+
+#include "AppleMIDI_Namespace.h"
+
+BEGIN_APPLEMIDI_NAMESPACE
+
+template <class Settings>
+struct Participant
+{
+    ParticipantKind kind = Listener;
+    ssrc_t          ssrc = 0;
+    IPAddress       remoteIP = INADDR_NONE;
+    uint16_t        remotePort = 0;
+    // 0 until the data-port handshake (data IN or data OK) reports the real port.
+    uint16_t        remoteDataPort = 0;
+
+#ifndef APPLEMIDI_NO_RECEIVER_FEEDBACK
+    uint64_t        receiverFeedbackStartTime = 0;
+    bool            doReceiverFeedback = false;
+#endif
+
+    uint16_t        sendSequenceNr = 0; // seeded when session/participant is created
+    uint16_t        receiveSequenceNr = 0;
+
+    uint64_t        lastSyncExchangeTime = 0;
+
+#ifdef APPLEMIDI_INITIATOR
+    uint8_t         connectionAttempts = 0;
+    uint32_t        initiatorToken = 0;
+    uint64_t        lastInviteSentTime = 0;
+    InviteStatus    invitationStatus = Initiating;
+    
+    uint8_t         synchronizationHeartBeats = 0;
+    uint8_t         synchronizationCount = 0;
+    bool            synchronizing = false;
+#endif
+    
+#ifdef USE_EXT_CALLBACKS
+    bool            firstMessageReceived = true;
+    uint32_t        offsetEstimate = 0;
+#endif
+    
+#ifdef KEEP_SESSION_NAME
+    char            sessionName[Settings::MaxSessionNameLen + 1];
+#endif
+} ;
+
+END_APPLEMIDI_NAMESPACE
